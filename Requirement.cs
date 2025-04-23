@@ -10,7 +10,7 @@ namespace Bachelor_Testing_V1
     {
         public string Value { get; set; }
         public bool Completed { get; set; }
-        Requirement(string value)
+        public Requirement(string value)
         {
             Value = value;
             Completed = false;
