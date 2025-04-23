@@ -1,6 +1,7 @@
-﻿using Bachelor_Testing_V1;
+using Bachelor_Testing_V1;
 using System;
 using System.Text.Json.Serialization;
+
 
 public class Step
 {
@@ -14,6 +15,7 @@ public class Step
     public string Description { get; set; }
 
     [JsonPropertyName("requirements")]
+    [JsonConverter(typeof(RequirementConverter))]
     public List<Requirement> Requirements { get; set; }
 
     [JsonPropertyName("equipment_needed")]
