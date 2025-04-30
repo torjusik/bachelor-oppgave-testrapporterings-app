@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using NpgsqlTypes;
 using System.Data;
 
 
@@ -322,7 +323,7 @@ namespace Bachelor_Testing_V1
                         "SELECT procedure_json FROM test_procedure WHERE id = @ProcedureId",
                         connection))
                     {
-                        // Add parameter to prevent SQL injectionwwww
+                        // Add parameter to prevent SQL injection
                         command.Parameters.AddWithValue("@ProcedureId", procedureId);
 
                         // Execute scalar to get the JSON as a string
@@ -345,6 +346,76 @@ namespace Bachelor_Testing_V1
                 MessageBox.Show($"Unexpected error: {ex.Message}");
                 throw;
             }
+        }
+        public void PopulateSwitchboardComboBox(ComboBox comboBox)
+        {
+
+            using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM get_switchboards_for_combobox()", connection))
+                {
+                    using (NpgsqlDataReader reader = command.ExecuteReader())
+                    {
+                        // Clear existing items
+                        comboBox.Items.Clear();
+
+                        // Create a data table to bind to the combobox
+                        DataTable dt = new DataTable();
+                        dt.Load(reader);
+
+                        // Set up the combobox
+                        comboBox.DisplayMember = "display_name";
+                        comboBox.ValueMember = "id";
+                        comboBox.DataSource = dt;
+                    }
+                }
+            }
+        }
+        public int? GetLatestTestIdForSwitchboard(int switchboardId)
+        {
+            using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (NpgsqlCommand command = new NpgsqlCommand("SELECT get_latest_switchboard_test_id(@switchboardId)", connection))
+                {
+                    command.Parameters.AddWithValue("switchboardId", NpgsqlDbType.Integer, switchboardId);
+
+                    // Execute the function and get the result
+                    object result = command.ExecuteScalar();
+
+                    // Return null if no test found, otherwise return the ID
+                    return result == DBNull.Value ? null : (int?)result;
+                }
+            }
+        }
+        public int SaveTestResult(
+            int switchboardId,
+            int testProcedureId,
+            int testerId,
+            int stepId,
+            string requirement,
+            bool passed,
+            string? notes = null,
+            int? execution_id = null)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            using var cmd = new NpgsqlCommand("SELECT save_test_result(@switchboard_id, @test_procedure_id, @tester_id, @step_id, @requirement, @passed, @notes, @execution_id);", conn);
+            cmd.Parameters.AddWithValue("switchboard_id", switchboardId);
+            cmd.Parameters.AddWithValue("test_procedure_id", testProcedureId);
+            cmd.Parameters.AddWithValue("tester_id", testerId);
+            cmd.Parameters.AddWithValue("step_id", stepId);
+            cmd.Parameters.AddWithValue("requirement", requirement);
+            cmd.Parameters.AddWithValue("passed", passed);
+            cmd.Parameters.AddWithValue("notes", (object?)notes ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("execution_id", (object?)execution_id ?? DBNull.Value);
+
+            var result = cmd.ExecuteScalar();
+            return Convert.ToInt32(result);
         }
     }
 }

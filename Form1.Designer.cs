@@ -40,6 +40,8 @@
             label5 = new Label();
             groupBox1 = new GroupBox();
             lsbSafetyReq = new ListBox();
+            label4 = new Label();
+            cbbSwitchboards = new ComboBox();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
@@ -136,7 +138,7 @@
             // 
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 14F);
-            label5.Location = new Point(301, 9);
+            label5.Location = new Point(468, 9);
             label5.Name = "label5";
             label5.Size = new Size(183, 25);
             label5.TabIndex = 15;
@@ -165,16 +167,38 @@
             // 
             lsbSafetyReq.FormattingEnabled = true;
             lsbSafetyReq.ItemHeight = 15;
-            lsbSafetyReq.Location = new Point(180, 50);
+            lsbSafetyReq.Items.AddRange(new object[] { "safety requirements will show here" });
+            lsbSafetyReq.Location = new Point(347, 50);
             lsbSafetyReq.Name = "lsbSafetyReq";
             lsbSafetyReq.Size = new Size(443, 94);
             lsbSafetyReq.TabIndex = 17;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Font = new Font("Segoe UI", 14F);
+            label4.Location = new Point(112, 9);
+            label4.Name = "label4";
+            label4.Size = new Size(117, 25);
+            label4.TabIndex = 18;
+            label4.Text = "Switchboard";
+            // 
+            // cbbSwitchboards
+            // 
+            cbbSwitchboards.FormattingEnabled = true;
+            cbbSwitchboards.Location = new Point(12, 50);
+            cbbSwitchboards.Name = "cbbSwitchboards";
+            cbbSwitchboards.Size = new Size(329, 23);
+            cbbSwitchboards.TabIndex = 19;
+            cbbSwitchboards.SelectedIndexChanged += cbbSwitchboards_SelectedIndexChanged;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(802, 542);
+            Controls.Add(cbbSwitchboards);
+            Controls.Add(label4);
             Controls.Add(lsbSafetyReq);
             Controls.Add(label5);
             Controls.Add(groupBox1);
@@ -201,5 +225,7 @@
         private Label label5;
         private GroupBox groupBox1;
         private ListBox lsbSafetyReq;
+        private Label label4;
+        private ComboBox cbbSwitchboards;
     }
 }

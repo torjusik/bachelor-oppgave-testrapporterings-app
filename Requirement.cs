@@ -10,10 +10,16 @@ namespace Bachelor_Testing_V1
     {
         public string Value { get; set; }
         public bool Completed { get; set; }
+        public string? Comment { get; set; }
         public Requirement(string value)
         {
             Value = value;
             Completed = false;
         }
+        public override string ToString()
+        {
+            return Value;
+        }
     }
+
 }
