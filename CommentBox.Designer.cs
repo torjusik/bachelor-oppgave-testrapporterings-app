@@ -32,19 +32,20 @@
             btnConfirm = new Button();
             btnCancel = new Button();
             lblRequirement = new Label();
+            label1 = new Label();
             SuspendLayout();
             // 
             // rtbComment
             // 
             rtbComment.Location = new Point(12, 58);
             rtbComment.Name = "rtbComment";
-            rtbComment.Size = new Size(319, 153);
+            rtbComment.Size = new Size(536, 109);
             rtbComment.TabIndex = 0;
             rtbComment.Text = "";
             // 
             // btnConfirm
             // 
-            btnConfirm.Location = new Point(256, 217);
+            btnConfirm.Location = new Point(473, 173);
             btnConfirm.Name = "btnConfirm";
             btnConfirm.Size = new Size(75, 23);
             btnConfirm.TabIndex = 1;
@@ -54,7 +55,7 @@
             // 
             // btnCancel
             // 
-            btnCancel.Location = new Point(175, 217);
+            btnCancel.Location = new Point(392, 173);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 23);
             btnCancel.TabIndex = 2;
@@ -65,17 +66,27 @@
             // lblRequirement
             // 
             lblRequirement.AutoSize = true;
-            lblRequirement.Location = new Point(13, 20);
+            lblRequirement.Location = new Point(12, 9);
             lblRequirement.Name = "lblRequirement";
             lblRequirement.Size = new Size(38, 15);
             lblRequirement.TabIndex = 3;
             lblRequirement.Text = "label1";
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 40);
+            label1.Name = "label1";
+            label1.Size = new Size(146, 15);
+            label1.TabIndex = 4;
+            label1.Text = "Write your comment here:";
+            // 
             // CommentBox
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(342, 249);
+            ClientSize = new Size(555, 203);
+            Controls.Add(label1);
             Controls.Add(lblRequirement);
             Controls.Add(btnCancel);
             Controls.Add(btnConfirm);
@@ -92,5 +103,6 @@
         private Button btnConfirm;
         private Button btnCancel;
         private Label lblRequirement;
+        private Label label1;
     }
 }
