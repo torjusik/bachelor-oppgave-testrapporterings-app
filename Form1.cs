@@ -7,19 +7,19 @@ namespace Bachelor_Testing_V1
 {
     public partial class Form1 : Form
     {
-        Session session;
+        Session? OpcSession;
         bool flipBool = false;
         string Slot1NodeId = "ns=4;s=|var|WAGO 751-9401 Compact Controller 100.Application.PLC_PRG.Slot1";
-        PostgresDbHandler postgresDbHandler;
+        PostgresDbHandler? postgresDbHandler;
         private TestProcedure? procedure;
         int selectedStepIdx;
 
         public Form1()
         {
             InitializeComponent();
-            SetTabStopRecursive(this);
-            clbRequirements.TabStop = true;
-            clbRequirements.Focus();
+            //SetTabStopRecursive(this);
+            //clbRequirements.TabStop = true;
+            //clbRequirements.Focus();
             ConnectDb();
             try
             {
@@ -29,7 +29,10 @@ namespace Bachelor_Testing_V1
             {
                 MessageBox.Show("opc ua failed to connect: ", ex.Message);
             }
-            postgresDbHandler.PopulateSwitchboardComboBox(cbbSwitchboards);
+            if (postgresDbHandler != null)
+            {
+                postgresDbHandler.PopulateSwitchboardComboBox(cbbSwitchboards);
+            }
             cbbSwitchboards.SelectedIndex = 0;
             // Attach KeyDown event handler to the form
             this.KeyDown += Form1_KeyDown;
@@ -53,7 +56,11 @@ namespace Bachelor_Testing_V1
         private void LoadTestProcedure(int switchboardId)
         {
             selectedStepIdx = 0;
-            string json = postgresDbHandler.GetTestProcedureJsonById(switchboardId);
+            string? json = null;
+            if (postgresDbHandler != null)
+            {
+                json = postgresDbHandler.GetTestProcedureJsonById(switchboardId);
+            }
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             if (json != null)
             {
@@ -70,23 +77,26 @@ namespace Bachelor_Testing_V1
         private void UpdateProcedureInfo()
         {
             lsbSafetyReq.DataSource = null;
-            lsbSafetyReq.DataSource = procedure.SafetyRequirements;
-            var selectedStep = procedure.Steps[selectedStepIdx];
-            lblStepName.Text = $"Step {selectedStepIdx + 1}: {selectedStep.Name}";
-            rtbDescription.Text = selectedStep.Description;
-            rtbEquipment.Clear();
-            if (selectedStep.EquipmentNeeded != null)
+            if (procedure != null)
             {
-                rtbEquipment.Text = "- " + string.Join("\n- ", selectedStep.EquipmentNeeded);
-            }
-            UpdateRequirementsCompletions();
-            clbRequirements.Items.Clear();
-            foreach (Requirement requirement in selectedStep.Requirements)
-            {
-                int index = clbRequirements.Items.Add(requirement);
-                if (requirement.Completed)
+                lsbSafetyReq.DataSource = procedure.SafetyRequirements;
+                var selectedStep = procedure.Steps[selectedStepIdx];
+                lblStepName.Text = $"Step {selectedStepIdx + 1}: {selectedStep.Name}";
+                rtbDescription.Text = selectedStep.Description;
+                rtbEquipment.Clear();
+                if (selectedStep.EquipmentNeeded != null)
                 {
-                    clbRequirements.SetItemChecked(index, true);
+                    rtbEquipment.Text = "- " + string.Join("\n- ", selectedStep.EquipmentNeeded);
+                }
+                UpdateRequirementsCompletions();
+                clbRequirements.Items.Clear();
+                foreach (Requirement requirement in selectedStep.Requirements)
+                {
+                    int index = clbRequirements.Items.Add(requirement);
+                    if (requirement.Completed)
+                    {
+                        clbRequirements.SetItemChecked(index, true);
+                    }
                 }
             }
         }
@@ -165,7 +175,7 @@ namespace Bachelor_Testing_V1
                 List<string>? preferredLocales = null;
 
                 // Create the session
-                session = Session.Create(
+                OpcSession = Session.Create(
                             config,
                             endpoint,
                             updateBeforeConnect,
@@ -176,10 +186,10 @@ namespace Bachelor_Testing_V1
                             preferredLocales
                         ).Result;
 
-                if (session != null && session.Connected)
+                if (OpcSession != null && OpcSession.Connected)
                 {
                     MessageBox.Show("OPC UA Client connected");
-                    SubscribeToVariable(session, Slot1NodeId);
+                    SubscribeToVariable(OpcSession, Slot1NodeId);
                 }
                 else throw new Exception("session could not connect");
             }
@@ -205,7 +215,7 @@ namespace Bachelor_Testing_V1
 
         private void btnWriteToPlc_Click(object sender, EventArgs e)
         {
-            if (session != null)
+            if (OpcSession != null)
             {
                 // Define the node IDs for the variables
                 NodeId temperatureNodeId = new NodeId("ns=4;s=|var|WAGO 751-9401 Compact Controller 100.Application.PLC_PRG.Temperature");
@@ -224,7 +234,7 @@ namespace Bachelor_Testing_V1
                 DiagnosticInfoCollection diagnosticInfos;
                 MessageBox.Show("Writing nodes...");
 
-                session.Write(null,
+                OpcSession.Write(null,
                                    nodesToWrite,
                                    out results,
                                    out diagnosticInfos);
@@ -279,101 +289,111 @@ namespace Bachelor_Testing_V1
         private void TryCompleteProcedure()
         {
             bool cancelCompletionOfTest = false;
-            foreach (var step in procedure.Steps)
+            if (procedure != null)
             {
-                DialogResult result = DialogResult.OK;
-                // loop over requirements to see if they are completed
-                foreach (var requirement in step.Requirements)
+                foreach (var step in procedure.Steps)
                 {
-                    bool isCompleted = requirement.Completed;
-                    if (!isCompleted)
+                    DialogResult result = DialogResult.OK;
+                    // loop over requirements to see if they are completed
+                    foreach (var requirement in step.Requirements)
                     {
-                        result = MessageBox.Show(
-                            $"Step: {step.Name} \nRequirement: {requirement} \nis not completed. Is this correct?\n \nYes = requirement is not completed, write a comment\nNo = requirement is completed\ncancel = go trough and check manually",
-                            "Confirm",
-                            MessageBoxButtons.YesNoCancel,
-                            MessageBoxIcon.Exclamation
-                        );
+                        bool isCompleted = requirement.Completed;
+                        if (!isCompleted)
+                        {
+                            result = MessageBox.Show(
+                                $"Step: {step.Name} \nRequirement: {requirement} \nis not completed. Is this correct?\n \nYes = requirement is not completed, write a comment\nNo = requirement is completed\ncancel = go trough and check manually",
+                                "Confirm",
+                                MessageBoxButtons.YesNoCancel,
+                                MessageBoxIcon.Exclamation
+                            );
 
-                        if (result == DialogResult.No)
-                        {
-                            requirement.Completed = true;
-                        }
-                        else if (result == DialogResult.Yes)
-                        {
-                            //check if a comment was made or not
-                            if (requirement.Comment == null)
+                            if (result == DialogResult.No)
                             {
-                                //get a comment from the user on why the requirement was not completed
-                                CommentBox commentBox = new($"requirement: {requirement.ToString()}, was not completed");
-                                DialogResult commentResult = commentBox.ShowDialog();
-                                if (commentResult == DialogResult.OK)
-                                {
-                                    string comment = commentBox.GetComment();
-                                    requirement.Comment = comment;
-                                }
-                                commentBox.Dispose();
+                                requirement.Completed = true;
                             }
+                            else if (result == DialogResult.Yes)
+                            {
+                                //check if a comment was made or not
+                                if (requirement.Comment == null)
+                                {
+                                    //get a comment from the user on why the requirement was not completed
+                                    CommentBox commentBox = new($"requirement: {requirement.ToString()}, was not completed");
+                                    DialogResult commentResult = commentBox.ShowDialog();
+                                    if (commentResult == DialogResult.OK)
+                                    {
+                                        string comment = commentBox.GetComment();
+                                        requirement.Comment = comment;
+                                    }
+                                    commentBox.Dispose();
+                                }
+                            }
+                        }
+                        if (result == DialogResult.Cancel)
+                        {
+                            cancelCompletionOfTest = true;
+                            break;
                         }
                     }
                     if (result == DialogResult.Cancel)
                     {
                         cancelCompletionOfTest = true;
                         break;
+
                     }
                 }
-                if (result == DialogResult.Cancel)
+                if (!cancelCompletionOfTest)
                 {
-                    cancelCompletionOfTest = true;
-                    break;
-                    
-                }
-            }
-            if (!cancelCompletionOfTest)
-            {
-                //save test to db
-                int testerId = 1; //hardcoded testerId because missing tester id logic (login or other)
-                int switchboardId = Convert.ToInt32(cbbSwitchboards.SelectedValue);
-                int? testProcedureId = postgresDbHandler.GetLatestTestIdForSwitchboard(switchboardId);
-                if (testProcedureId != null)
-                {
-                    //use the returning execution id to save the results to the same execution row
-                    int? executionId = null;
-                    foreach (var step in procedure.Steps)
+                    //save test to db
+                    int testerId = 1; //hardcoded testerId because missing tester id logic (login or other)
+                    int switchboardId = Convert.ToInt32(cbbSwitchboards.SelectedValue);
+                    int? testProcedureId = null;
+                    if (postgresDbHandler != null)
                     {
-                        foreach (var requirement in step.Requirements)
-                        {
-                            executionId = postgresDbHandler.SaveTestResult(
-                                switchboardId,
-                                (int)testProcedureId,
-                                testerId, step.StepId,
-                                requirement.Value,
-                                requirement.Completed,
-                                requirement.Comment,
-                                executionId
-                                );
-                        }
+                        testProcedureId = postgresDbHandler.GetLatestTestIdForSwitchboard(switchboardId);
                     }
-                    MessageBox.Show("test results were saved");
+                    if (testProcedureId != null && postgresDbHandler != null)
+                    {
+                        //use the returning execution id to save the results to the same execution row
+                        int? executionId = null;
+                        foreach (var step in procedure.Steps)
+                        {
+                            foreach (var requirement in step.Requirements)
+                            {
+                                executionId = postgresDbHandler.SaveTestResult(
+                                    switchboardId,
+                                    (int)testProcedureId,
+                                    testerId, step.StepId,
+                                    requirement.Value,
+                                    requirement.Completed,
+                                    requirement.Comment,
+                                    executionId
+                                    );
+                            }
+                        }
+                        MessageBox.Show("test results were saved");
+                    }
                 }
             }
         }
         private void btnNextStep_Click(object sender, EventArgs e)
         {
-            if (selectedStepIdx < procedure.Steps.Count() - 1)
+            if (procedure != null)
             {
-                selectedStepIdx += 1;
-            }
-            else
-            {
-                UpdateRequirementsCompletions();
-                DialogResult result = MessageBox.Show("do you want to save the test?", "", MessageBoxButtons.YesNo);
-                if (result == DialogResult.Yes)
+                if (selectedStepIdx < procedure.Steps.Count() - 1)
                 {
-                    TryCompleteProcedure();
+                    selectedStepIdx += 1;
                 }
+                else
+                {
+                    UpdateRequirementsCompletions();
+                    DialogResult result = MessageBox.Show("do you want to save the test?", "", MessageBoxButtons.YesNo);
+                    if (result == DialogResult.Yes)
+                    {
+                        TryCompleteProcedure();
+                    }
+                }
+                UpdateProcedureInfo();
             }
-            UpdateProcedureInfo();
         }
 
         private void btnPrevStep_Click(object sender, EventArgs e)
@@ -387,12 +407,13 @@ namespace Bachelor_Testing_V1
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (session != null)
+            if (OpcSession != null)
             {
-                session.Close();
+                OpcSession.Close();
             }
         }
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        //left/right arrow goes to prev/next to navigate faster
+        private void Form1_KeyDown(object? sender, KeyEventArgs e)
         {
             // Check if the left arrow key is pressed
             if (e.KeyCode == Keys.Left)
@@ -435,8 +456,12 @@ namespace Bachelor_Testing_V1
             if (cbbSwitchboards.SelectedValue != null)
             {
                 // Get the selected switchboard ID
+                int? testId = null;
                 int switchboardId = Convert.ToInt32(cbbSwitchboards.SelectedValue);
-                int? testId = postgresDbHandler.GetLatestTestIdForSwitchboard(switchboardId);
+                if (postgresDbHandler != null)
+                {
+                    testId = postgresDbHandler.GetLatestTestIdForSwitchboard(switchboardId);
+                }
                 if (testId != null)
                 {
                     LoadTestProcedure((int)testId);
