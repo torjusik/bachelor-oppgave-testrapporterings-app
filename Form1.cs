@@ -17,23 +17,24 @@ namespace Bachelor_Testing_V1
         public Form1()
         {
             InitializeComponent();
-            //SetTabStopRecursive(this);
-            //clbRequirements.TabStop = true;
-            //clbRequirements.Focus();
+            SetTabStopRecursive(this);
+            clbRequirements.TabStop = true;
+            clbRequirements.Focus();
             ConnectDb();
-            try
-            {
-                ConnectOpcUa();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("opc ua failed to connect: ", ex.Message);
-            }
+            //try
+            //{
+            //    ConnectOpcUa();
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show("opc ua failed to connect: ", ex.Message);
+            //}
             if (postgresDbHandler != null)
             {
                 postgresDbHandler.PopulateSwitchboardComboBox(cbbSwitchboards);
             }
             cbbSwitchboards.SelectedIndex = 0;
+
             // Attach KeyDown event handler to the form
             this.KeyDown += Form1_KeyDown;
         }
@@ -431,6 +432,7 @@ namespace Bachelor_Testing_V1
 
         private void cbbSwitchboards_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //only prompt to switch if procedure is not null
             if (procedure != null)
             {
                 DialogResult result = DialogResult.OK;
