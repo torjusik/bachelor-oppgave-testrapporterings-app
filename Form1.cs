@@ -159,7 +159,7 @@ namespace Bachelor_Testing_V1
             };
             try
             {
-                EndpointDescription endpointDescription = CoreClientUtils.SelectEndpoint(config, "opc.tcp://192.168.1.17:4840/", true, 4000); //the address of the wago opc ua server, and 100 ms in timeout for fast testing
+                EndpointDescription endpointDescription = CoreClientUtils.SelectEndpoint(config, "opc.tcp://192.168.1.17:4840/", true, 4000); //the address of the wago opc ua server
                 EndpointConfiguration endpointConfiguration = EndpointConfiguration.Create(config);
                 ConfiguredEndpoint endpoint = new ConfiguredEndpoint(null, endpointDescription, endpointConfiguration);
 
