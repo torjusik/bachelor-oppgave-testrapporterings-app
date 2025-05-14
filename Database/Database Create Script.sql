@@ -290,7 +290,3 @@ INSERT INTO test_procedure (name, description, procedure_json, version) VALUES
 INSERT INTO switchboard_test (switchboard_id, test_procedure_id) VALUES
 (1,	1),
 (2, 2);
-
-SELECT *
-FROM test_result
-WHERE execution_id = (SELECT MAX(execution_id) FROM test_result);
